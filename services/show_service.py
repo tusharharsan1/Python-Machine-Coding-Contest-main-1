@@ -57,45 +57,64 @@ class ShowService:
             ScreenNotFoundException, FeatureNotSupportedByScreenException, InvalidDateException
         """
 
-        # TODO Step 1: Get the user with self.user_repository.find_by_id(user_id).
-        #   - If there is no such user, raise UserNotFoundException("...some message...").
-        #   - If user.user_type is not UserType.ADMIN, raise UnAuthorizedAccessException("...").
+        # Step 1: the user must exist and must be an admin
+        user = self.user_repository.find_by_id(user_id)
+        if user is None:
+            raise UserNotFoundException(f"User with id {user_id} not found")
+        if user.user_type != UserType.ADMIN:
+            raise UnAuthorizedAccessException("Only an admin can create a show")
 
-        # TODO Step 2: Get the movie with self.movie_repository.find_by_id(movie_id).
-        #   - If there is no such movie, raise MovieNotFoundException("...").
+        # Step 2: the movie must exist
+        movie = self.movie_repository.find_by_id(movie_id)
+        if movie is None:
+            raise MovieNotFoundException(f"Movie with id {movie_id} not found")
 
-        # TODO Step 3: Get the screen with self.screen_repository.find_by_id(screen_id).
-        #   - If there is no such screen, raise ScreenNotFoundException("...").
+        # Step 3: the screen must exist
+        screen = self.screen_repository.find_by_id(screen_id)
+        if screen is None:
+            raise ScreenNotFoundException(f"Screen with id {screen_id} not found")
 
-        # TODO Step 4: Check that the screen supports EVERY feature of the show.
-        #   The features of a screen are stored as ScreenFeature objects, so first build a plain list:
-        #       screen_features = [screen_feature.feature for screen_feature in screen.features]
-        #   - If any feature of `features` is not in screen_features, raise FeatureNotSupportedByScreenException("...").
+        # Step 4: the screen must support every feature of the show
+        screen_features = [screen_feature.feature for screen_feature in screen.features]
+        for feature in features:
+            if feature not in screen_features:
+                raise FeatureNotSupportedByScreenException(f"Screen does not support {feature.name}")
 
-        # TODO Step 5: Validate the timing.
-        #   - If start_time is before the current time (datetime.now()), raise InvalidDateException("...").
-        #   - If end_time is before start_time, raise InvalidDateException("...").
-        #   (A show that ends exactly when it starts is allowed.)
+        # Step 5: validate the timing
+        if start_time < datetime.now():
+            raise InvalidDateException("Start time cannot be in the past")
+        if end_time < start_time:
+            raise InvalidDateException("End time cannot be before start time")
 
         # ---- Everything above only READS and CHECKS. Nothing has been saved yet. ----
 
-        # TODO Step 6: Create the Show and save it.
-        #   - show = Show()
-        #   - set show.movie, show.screen, show.start_time and show.end_time
-        #   - set show.features = [ShowFeature(feature=f) for f in features]
-        #   - save it:  show = self.show_repository.save(show)
+        # Step 6: create the show and save it
+        show = Show()
+        show.movie = movie
+        show.screen = screen
+        show.start_time = start_time
+        show.end_time = end_time
+        show.features = [ShowFeature(feature=feature) for feature in features]
+        show = self.show_repository.save(show)
 
-        # TODO Step 7: Create one ShowSeat for every seat of the screen.
-        #   - seats = self.seats_repository.find_all_by_screen_id(screen_id)
-        #   - for each seat create a ShowSeat with show = the saved show, seat = that seat,
-        #     status = SeatStatus.AVAILABLE
-        #   - save the whole list with self.show_seat_repository.save_all(show_seats)
+        # Step 7: one ShowSeat (AVAILABLE) for every seat of the screen
+        seats = self.seats_repository.find_all_by_screen_id(screen_id)
+        show_seats = []
+        for seat in seats:
+            show_seat = ShowSeat()
+            show_seat.show = show
+            show_seat.seat = seat
+            show_seat.status = SeatStatus.AVAILABLE
+            show_seats.append(show_seat)
+        self.show_seat_repository.save_all(show_seats)
 
-        # TODO Step 8: Save the prices.
-        #   - for each entry of pricing_config (a tuple: seat_type is entry[0], price is entry[1])
-        #     create a SeatTypeShow with show = the saved show, seat_type = entry[0], price = entry[1]
-        #   - save each one with self.seat_type_show_repository.save(seat_type_show)
+        # Step 8: save the price of every seat type
+        for seat_type, price in pricing_config:
+            seat_type_show = SeatTypeShow()
+            seat_type_show.show = show
+            seat_type_show.seat_type = seat_type
+            seat_type_show.price = price
+            self.seat_type_show_repository.save(seat_type_show)
 
-        # TODO Step 9: Return the saved show (and delete the line `return None` below).
-
-        return None
+        # Step 9: return the saved show
+        return show

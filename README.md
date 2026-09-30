@@ -25,7 +25,5 @@ You are building book my show. As a part of this system, you need to expose a fu
 1. Carefully look at `CreateShowRequestDTO` and `CreateShowResponseDTO` classes. These classes represent the request and response of the functionality which we want to implement.
 2. Carefully examine the models package to understand the database schema.
 3. Implement the `create_show` method inside the `ShowController`.
-4. Implement the `create_show` method inside the `ShowService` and complete the incomplete models and repositories.
-5. Search for `TODO` in the project to find everything that needs to be completed. Each `TODO` explains what to write.
-6. We will be using SQLite which is an in-memory SQL database, with SQLAlchemy. You do not need to implement any database setup code. You just need to use the repository classes to interact with the database.
-7. Carefully examine the `ShowControllerTest` class to understand how the controller will be tested. Your solution should pass all the tests in this class.
+4. Implement the `create_show` method inside the `ShowService`. The `SeatTypeShow` and `ShowSeat` models and the `find_all_by_screen_id` method of `SeatsRepository` are also part of the solution.
+5. We will be using SQLite which is an in-memory SQL database, with SQLAlchemy. You do not need to implement any database setup code. You just need to use the repository classes to interact with the database.

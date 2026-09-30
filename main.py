@@ -1,6 +1,6 @@
 """A small demo that shows how everything is wired together. Run it with:  python main.py
 
-The tests do the same wiring: 1) create a session  2) create repositories  3) create the service
+The wiring has 4 steps: 1) create a session  2) create repositories  3) create the service
 4) create the controller. Nothing to change in this file.
 """
 from datetime import datetime, timedelta

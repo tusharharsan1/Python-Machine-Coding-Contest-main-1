@@ -11,12 +11,17 @@ class ShowController:
     def create_show(self, request_dto: CreateShowRequestDTO) -> CreateShowResponseDTO:
         response_dto = CreateShowResponseDTO()
         try:
-            # TODO: 1. Call self.show_service.create_show(...) using the fields of request_dto
-            #          (movie_id, user_id, screen_id, start_time, end_time, pricing_config, features).
-            #          Careful: create_show() takes user_id BEFORE movie_id, look at its definition.
-            #       2. Put the Show that comes back in response_dto.show
-            #       3. Set response_dto.response_status = ResponseStatus.SUCCESS
-            pass
+            show = self.show_service.create_show(
+                user_id=request_dto.user_id,
+                movie_id=request_dto.movie_id,
+                screen_id=request_dto.screen_id,
+                start_time=request_dto.start_time,
+                end_time=request_dto.end_time,
+                pricing_config=request_dto.pricing_config,
+                features=request_dto.features,
+            )
+            response_dto.show = show
+            response_dto.response_status = ResponseStatus.SUCCESS
         except Exception:
             # If ANY exception happens, the status is FAILURE and the show must stay None.
             response_dto.response_status = ResponseStatus.FAILURE

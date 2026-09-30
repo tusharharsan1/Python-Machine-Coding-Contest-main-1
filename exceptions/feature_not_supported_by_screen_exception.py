@@ -1,0 +1,2 @@
+class FeatureNotSupportedByScreenException(Exception):
+    pass

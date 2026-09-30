@@ -1,0 +1,2 @@
+class ScreenNotFoundException(Exception):
+    pass

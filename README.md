@@ -1,65 +1,31 @@
-# Create a Show for Book My Show
+# Create a show for Book My Show
 
 ## Problem Statement
 
-You are building Book My Show. As a part of this system, you need to expose a functionality using which
-theatre admins can create a show. Once a show has been created, users will be able to book tickets for it.
+You are building book my show. As a part of this system, you need to expose a functionality using which theatre admins can create a show. Once this show has been created, users will be able to book tickets for this show on the platform.
 
 ## Requirements
+1. The request to create a show will contain the following things:
+   * Movie ID - The ID of the movie which is being shown.
+   * User ID - The ID of the user who is creating the show.
+   * Screen ID - The ID of the screen where the show is being hosted.
+   * Pricing Config (List of (SeatType, float) tuples) - The price of each seat type for this show. Example: `[(SeatType.GOLD, 250.0), (SeatType.SILVER, 150.0)]`
+   * Start Time - The start time of the show (a `datetime`).
+   * End Time - The end time of the show (a `datetime`).
+   * Feature List - The list of features that are supported by this show.
+2. This functionality should be only accessible to the theatre admin.
+3. Every screen has supported features like 2D, 3D, Dolby vision etc. The show that is going to be scheduled on a screen should support all or subset of these features. Example scenarios:
+   * If a screen is a 2D screen, then a 3D show cannot be scheduled on it.
+   * If a screen supports 3D, 2D, Dolby atmos, then a show which supports 2D and Dolby atmos can be scheduled on it.
+4. The functionality should do basic data validation checks ex. The start time should not be in the past (compare with `datetime.now()`) and the end time should not be before the start time. The checks must be done in this order, and the first failing check raises its exception: user not found, user not an admin, movie not found, screen not found, feature not supported by the screen, invalid date. If any check fails, nothing should be stored in the database.
+5. Once this functionality executes successfully, we should store show details, seats related details for this show and pricing details for this show in the database.
 
-1. The request to create a show contains:
-   * `movie_id` - the ID of the movie being shown.
-   * `user_id` - the ID of the user who is creating the show.
-   * `screen_id` - the ID of the screen where the show is hosted.
-   * `pricing_config` - a list of `(SeatType, price)` tuples: the price of each seat type for this show.
-     Example: `[(SeatType.GOLD, 250.0), (SeatType.SILVER, 150.0)]`
-   * `start_time` - a `datetime`: when the show starts.
-   * `end_time` - a `datetime`: when the show ends.
-   * `features` - the list of features this show supports, e.g. `[Feature.TWO_D, Feature.DOLBY_ATMOS]`.
-2. Only a theatre **admin** (`UserType.ADMIN`) can create a show.
-3. Every screen has supported features (2D, 3D, Dolby Atmos ...). A show can only be scheduled on a screen
-   if the screen supports **every** feature the show asks for.
-   * A 2D-only screen cannot host a 3D show.
-   * A screen supporting 3D, 2D and Dolby Atmos can host a show that needs 2D and Dolby Atmos.
-4. Basic validation: the show must not start in the past, and it must not end before it starts.
-5. When the show is created successfully, store in the database:
-   * the show itself (with its features),
-   * one `ShowSeat` (status `AVAILABLE`) for every seat of the screen,
-   * one `SeatTypeShow` (the price) for every entry of `pricing_config`.
-
-### Order of validation (important)
-
-Check things in exactly this order and stop at the first problem:
-
-| # | Check | Exception raised |
-|---|-------|------------------|
-| 1 | user does not exist | `UserNotFoundException` |
-| 2 | user is not an `ADMIN` | `UnAuthorizedAccessException` |
-| 3 | movie does not exist | `MovieNotFoundException` |
-| 4 | screen does not exist | `ScreenNotFoundException` |
-| 5 | screen does not support a requested feature | `FeatureNotSupportedByScreenException` |
-| 6 | `start_time` is before the current time | `InvalidDateException` |
-| 7 | `end_time` is before `start_time` | `InvalidDateException` |
-
-If any check fails, **nothing** must be saved to the database.
-Use `datetime.now()` (no timezone) for "the current time".
 
 ## Instructions
-
-1. Look at `dtos/create_show_request_dto.py` and `dtos/create_show_response_dto.py`. They describe the input and output of the functionality.
-2. Look at the `models/` folder to understand the database tables.
-3. Search for `TODO` in the project (Ctrl+Shift+F in VS Code). Each `TODO` tells you exactly what to write. Suggested order:
-   1. `models/seat_type_show.py` and `models/show_seat.py` - finish the two tables.
-   2. `repositories/seats_repository.py` - write one small database query.
-   3. `services/show_service.py` - implement `create_show`.
-   4. `controllers/show_controller.py` - implement `create_show`.
-4. We use **SQLite in memory** through **SQLAlchemy**. You do not write any database setup code. Just use the repository classes.
-5. `main.py` shows how everything is wired together. Run it with `python main.py` once you are done.
-6. Your solution will be tested using the tests in the `tests/` folder (run with `python -m unittest discover tests`).
-
-## Setup
-
-```bash
-pip install -r requirements.txt
-python main.py
-```
+1. Carefully look at `CreateShowRequestDTO` and `CreateShowResponseDTO` classes. These classes represent the request and response of the functionality which we want to implement.
+2. Carefully examine the models package to understand the database schema.
+3. Implement the `create_show` method inside the `ShowController`.
+4. Implement the `create_show` method inside the `ShowService` and complete the incomplete models and repositories.
+5. Search for `TODO` in the project to find everything that needs to be completed. Each `TODO` explains what to write.
+6. We will be using SQLite which is an in-memory SQL database, with SQLAlchemy. You do not need to implement any database setup code. You just need to use the repository classes to interact with the database.
+7. Carefully examine the `ShowControllerTest` class to understand how the controller will be tested. Your solution should pass all the tests in this class.
